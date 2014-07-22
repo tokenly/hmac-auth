@@ -1,0 +1,1 @@
+The HmacAuth component for UTipdMe.
