@@ -3,6 +3,7 @@
 namespace Utipd\HmacAuth;
 
 use Exception;
+use Symfony\Component\HttpFoundation\Request;
 
 /*
 * Generator
@@ -34,6 +35,26 @@ class Generator
         $request->addHeader('X-'.$this->auth_header_namespace.'-AUTH-API-TOKEN', $api_token);
         $request->addHeader('X-'.$this->auth_header_namespace.'-AUTH-NONCE', $signature_info['nonce']);
         $request->addHeader('X-'.$this->auth_header_namespace.'-AUTH-SIGNATURE', $signature_info['signature']);
+
+        return;
+    }
+
+    public function addSignatureToSymfonyRequest(\Symfony\Component\HttpFoundation\Request $request, $api_token, $secret) {
+        $method = $request->getMethod();
+        
+        // build URL without parameters
+        $url = $request->getScheme().'://'.$request->getHost().$request->getPathInfo();
+
+        // get parameters
+        $parameters = $request->query->all();
+
+        // get signature
+        $signature_info = $this->createSignatureParameters($method, $url, $parameters, $api_token, $secret);
+
+        // add http headers
+        $request->headers->set('X-'.$this->auth_header_namespace.'-AUTH-API-TOKEN', $api_token);
+        $request->headers->set('X-'.$this->auth_header_namespace.'-AUTH-NONCE', $signature_info['nonce']);
+        $request->headers->set('X-'.$this->auth_header_namespace.'-AUTH-SIGNATURE', $signature_info['signature']);
 
         return;
     }
