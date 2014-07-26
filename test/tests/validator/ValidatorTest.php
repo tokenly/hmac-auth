@@ -27,11 +27,11 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase
         $nonce = time();
         $expected_signature = $this->expectedSignature($nonce);
 
-        $request = \Symfony\Component\HttpFoundation\Request::create('http://somesite.com/sample/url?foo=bar', 'GET', [], [], [], [
-            'X-UTIPD-AUTH-API-TOKEN' => 'myapi123',
-            'X-UTIPD-AUTH-NONCE'     => $nonce,
-            'X-UTIPD-AUTH-SIGNATURE' => $expected_signature,
-        ]);
+        // $uri, $method = 'GET', $parameters = array(), $cookies = array(), $files = array(), $server = array()
+        $request = \Symfony\Component\HttpFoundation\Request::create('http://somesite.com/sample/url?foo=bar', 'GET', [], [], [], []);
+        $request->headers->set('X-Utipd-Auth-Api-Token', 'myapi123');
+        $request->headers->set('X-Utipd-Auth-Nonce',     $nonce);
+        $request->headers->set('X-Utipd-Auth-Signature', $expected_signature);
 
         $params = $validator->validateFromRequest($request);
     } 
