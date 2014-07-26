@@ -14,7 +14,7 @@ class Validator
     const HMAC_TIMEOUT = 300; // 5 min
 
 
-    protected $auth_header_namespace      = 'UTIPD';
+    protected $auth_header_namespace      = 'Utipd';
     protected $api_secret_lookup_function = null;
 
 
@@ -51,9 +51,9 @@ class Validator
 
     public function validateFromRequest(\Symfony\Component\HttpFoundation\Request $request) {
         // get the request headers
-        $nonce = $request->server->get('X-'.$this->auth_header_namespace.'-AUTH-NONCE');
-        $api_token = $request->server->get('X-'.$this->auth_header_namespace.'-AUTH-API-TOKEN');
-        $signature = $request->server->get('X-'.$this->auth_header_namespace.'-AUTH-SIGNATURE');
+        $nonce = $request->headers->get('X-'.$this->auth_header_namespace.'-Auth-Nonce');
+        $api_token = $request->headers->get('X-'.$this->auth_header_namespace.'-Auth-Api-Token');
+        $signature = $request->headers->get('X-'.$this->auth_header_namespace.'-Auth-Signature');
 
         if (!$nonce) { throw new AuthorizationException("Missing nonce"); }
         if (!$api_token) { throw new AuthorizationException("Missing api_token"); }
