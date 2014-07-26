@@ -37,12 +37,10 @@ class Validator
                 $http_error_code = 403;
 
             } catch (AuthorizationException $e) {
-                Debug::errorTrace("ERROR: ".$e->getMessage(),__FILE__,__LINE__,$this);                
                 $error_message = $e->getAuthorizationErrorString();
                 $http_error_code = $e->getCode();
 
             } catch (Exception $e) {
-                Debug::errorTrace("ERROR: ".$e->getMessage(),__FILE__,__LINE__,$this);                
                 $error_message = 'Authentication Failed';
                 $http_error_code = 403;
             }
