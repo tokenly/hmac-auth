@@ -88,10 +88,12 @@ class Validator
            .$nonce;
 
         $expected_signature = base64_encode(hash_hmac('sha256', $data, $secret, true));
-    
+
         $valid = ($signature === $expected_signature);
         if (!$valid) {
-            throw new AuthorizationException("Invalid Authorization Signature", "signature mismatch: data=".($data)." \$signature=$signature");
+            throw new AuthorizationException("Invalid Authorization Signature", "signature mismatch: data=".($data)."\nsignature=$signature");
         }
+
+        return $valid;
     }
 }
