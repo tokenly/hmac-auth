@@ -46,7 +46,11 @@ class Generator
         $url = $request->getScheme().'://'.$request->getHost().$request->getPathInfo();
 
         // get parameters
-        $parameters = $request->query->all();
+        if ($method == 'POST') {
+            $parameters = $request->request->all();
+        } else {
+            $parameters = $request->query->all();
+        }
 
         // get signature
         $signature_info = $this->createSignatureParameters($method, $url, $parameters, $api_token, $secret);
