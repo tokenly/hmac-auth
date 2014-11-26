@@ -1,5 +1,5 @@
 {
-    "name": "utipd/hmac-auth",
+    "name": "tokenly/hmac-auth",
     "description": "A library",
     "type": "library",
     "license": "mit",
@@ -19,6 +19,6 @@
         "phpunit/phpunit": "~4"
     },
     "autoload": {
-        "psr-0": {"Utipd\\HmacAuth": "src"}
+        "psr-0": {"Tokenly\\HmacAuth": "src"}
     }
 }

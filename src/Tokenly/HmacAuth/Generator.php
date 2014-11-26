@@ -1,6 +1,6 @@
 <?php
 
-namespace Utipd\HmacAuth;
+namespace Tokenly\HmacAuth;
 
 use Exception;
 use Symfony\Component\HttpFoundation\Request;

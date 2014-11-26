@@ -1,3 +1,3 @@
-The HTTP Hmac authentication component for UTipdMe.
+The HTTP Hmac authentication component for Tokenly.
 
-[![Build Status](https://travis-ci.org/UTipdMe/HmacAuth.svg?branch=master)](https://travis-ci.org/UTipdMe/HmacAuth)
+[![Build Status](https://travis-ci.org/Tokenly/hmac-auth.svg?branch=master)](https://travis-ci.org/Tokenly/hmac-auth)

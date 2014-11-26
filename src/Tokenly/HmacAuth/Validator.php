@@ -1,9 +1,9 @@
 <?php
 
-namespace Utipd\HmacAuth;
+namespace Tokenly\HmacAuth;
 
 use Exception;
-use Utipd\HmacAuth\Exception\AuthorizationException;
+use Tokenly\HmacAuth\Exception\AuthorizationException;
 
 /*
 * Validator
@@ -14,7 +14,7 @@ class Validator
     const HMAC_TIMEOUT = 300; // 5 min
 
 
-    protected $auth_header_namespace      = 'Utipd';
+    protected $auth_header_namespace      = 'Tokenly';
     protected $api_secret_lookup_function = null;
 
 

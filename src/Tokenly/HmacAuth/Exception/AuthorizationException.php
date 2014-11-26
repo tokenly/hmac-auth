@@ -1,6 +1,6 @@
 <?php
 
-namespace Utipd\HmacAuth\Exception;
+namespace Tokenly\HmacAuth\Exception;
 
 use Exception;
 

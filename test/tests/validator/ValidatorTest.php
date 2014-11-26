@@ -1,6 +1,6 @@
 <?php
 
-use Utipd\HmacAuth\Validator;
+use Tokenly\HmacAuth\Validator;
 use \Exception;
 use \PHPUnit_Framework_Assert as PHPUnit;
 
@@ -29,9 +29,9 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase
 
         // $uri, $method = 'GET', $parameters = array(), $cookies = array(), $files = array(), $server = array()
         $request = \Symfony\Component\HttpFoundation\Request::create('http://somesite.com/sample/url?foo=bar', 'GET', [], [], [], []);
-        $request->headers->set('X-Utipd-Auth-Api-Token', 'myapi123');
-        $request->headers->set('X-Utipd-Auth-Nonce',     $nonce);
-        $request->headers->set('X-Utipd-Auth-Signature', $expected_signature);
+        $request->headers->set('X-Tokenly-Auth-Api-Token', 'myapi123');
+        $request->headers->set('X-Tokenly-Auth-Nonce',     $nonce);
+        $request->headers->set('X-Tokenly-Auth-Signature', $expected_signature);
 
         $params = $validator->validateFromRequest($request);
     } 
