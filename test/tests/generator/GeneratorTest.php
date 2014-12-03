@@ -29,11 +29,11 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         $generator = new Generator();
         $generator->addSignatureToGuzzleRequest($request, 'myapi123', 'mysecret456');
 
-        PHPUnit::assertEquals('myapi123', $request->getHeader('X-UTIPD-AUTH-API-TOKEN'));
-        $nonce = $request->getHeader('X-UTIPD-AUTH-NONCE');
+        PHPUnit::assertEquals('myapi123', $request->getHeader('X-TOKENLY-AUTH-API-TOKEN'));
+        $nonce = $request->getHeader('X-TOKENLY-AUTH-NONCE');
         PHPUnit::assertGreaterThanOrEqual(time(), $nonce);
         $expected_signature = $this->expectedSignature($nonce);
-        PHPUnit::assertEquals($expected_signature, $request->getHeader('X-UTIPD-AUTH-SIGNATURE'));
+        PHPUnit::assertEquals($expected_signature, $request->getHeader('X-TOKENLY-AUTH-SIGNATURE'));
     } 
 
 
