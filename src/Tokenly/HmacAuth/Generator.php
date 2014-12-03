@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 class Generator
 {
 
-    protected $auth_header_namespace = 'UTIPD';
+    protected $auth_header_namespace = 'TOKENLY';
 
     public function __construct($auth_header_namespace=null) {
         if (isset($auth_header_namespace)) {

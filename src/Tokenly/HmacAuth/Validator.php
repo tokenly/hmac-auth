@@ -18,35 +18,16 @@ class Validator
     protected $api_secret_lookup_function = null;
 
 
-    public function __construct($api_secret_lookup_function, $auth_header_namespace=null) {
+    public function __construct($api_secret_lookup_function=null, $auth_header_namespace=null) {
         if (isset($auth_header_namespace)) {
             $this->auth_header_namespace = $auth_header_namespace;
         }
 
-        $this->api_secret_lookup_function = $api_secret_lookup_function;
+        if ($api_secret_lookup_function !== null) { $this->api_secret_lookup_function = $api_secret_lookup_function; }
     }
 
-    public function buildHMacAuthBeforeFunction() {
-        return function(\Symfony\Component\HttpFoundation\Request $request) {
-            try {
-                if ($this->validateFromRequest($request)) {
-                    // validated
-                    return;
-                } 
-                $error_message = 'Authentication Failed';
-                $http_error_code = 403;
-
-            } catch (AuthorizationException $e) {
-                $error_message = $e->getAuthorizationErrorString();
-                $http_error_code = $e->getCode();
-
-            } catch (Exception $e) {
-                $error_message = 'Authentication Failed';
-                $http_error_code = 403;
-            }
-
-            return new Response($error_message, $http_error_code);
-        };
+    public function setAPISecretLookupFunction($api_secret_lookup_function) {
+        $this->api_secret_lookup_function = $api_secret_lookup_function;
     }
 
     public function validateFromRequest(\Symfony\Component\HttpFoundation\Request $request) {
@@ -60,7 +41,11 @@ class Validator
         if (!$signature) { throw new AuthorizationException("Missing signature"); }
 
         // get the api_secret
-        $api_secret = call_user_func($this->api_secret_lookup_function, $api_token);
+        if ($this->api_secret_lookup_function AND is_callable($this->api_secret_lookup_function)) {
+            $api_secret = call_user_func($this->api_secret_lookup_function, $api_token);
+        } else {
+            $api_secret = null;
+        }
         if (!$api_secret) { throw new AuthorizationException("Invalid API Token", "Failed to find api secret for token $api_token"); }
 
         // build the method, url and parameters
