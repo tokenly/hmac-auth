@@ -14,7 +14,6 @@ class HmacAuthServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        $this->package('tokenly/hmac-auth', 'hmac-auth', __DIR__.'/../../');
     }
 
     /**
@@ -24,6 +23,8 @@ class HmacAuthServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->package('tokenly/hmac-auth', 'hmac-auth', __DIR__.'/../../');
+
         // add the route middleware
         $this->app['router']->middleware('hmacauth', 'Tokenly\HmacAuth\Middleware\AuthenticateAPI');
     }
