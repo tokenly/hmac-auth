@@ -23,7 +23,7 @@ class Generator
         $method = $request->getMethod();
         
         // build URL without parameters
-        $url = $request->getScheme().'://'.$request->getHost().$request->getPath();
+        $url = $this->buildURL($request->getScheme(), $request->getHost(), $request->getPort()).$request->getPath();
 
         // get parameters
         $parameters = $request->getQuery()->toArray();
@@ -43,7 +43,7 @@ class Generator
         $method = $request->getMethod();
         
         // build URL without parameters
-        $url = $request->getScheme().'://'.$request->getHost().$request->getPathInfo();
+        $url = $this->buildURL($request->getScheme(), $request->getHost(), $request->getPort()).$request->getPathInfo();
 
         // get parameters
         if ($method == 'POST') {
@@ -61,6 +61,16 @@ class Generator
         $request->headers->set('X-'.$this->auth_header_namespace.'-AUTH-SIGNATURE', $signature_info['signature']);
 
         return;
+    }
+
+    protected function buildURL($scheme, $host, $port) {
+        $url = $scheme.'://'.$host;
+
+        if (('http' == $scheme AND $port == 80) OR ('https' == $scheme AND $port == 443)) {
+            return $url;
+        }
+
+        return $url.':'.$port;
     }
 
     public function createSignatureParameters($method, $url, $parameters, $api_token, $secret)
