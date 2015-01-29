@@ -51,7 +51,18 @@ class Validator
         // build the method, url and parameters
         $method = $request->getMethod();
         $url = $request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo();
-        $parameters = $method == 'POST' ? $request->request->all() : $request->query->all();
+
+        // get parameters
+        if ($method == 'GET') {
+            $parameters = $request->query->all();
+        } else {
+            $is_json = strpos($request->header('CONTENT_TYPE'), '/json');
+            if ($is_json) {
+                $parameters = json_decode($request->getContent(), true);
+            } else {
+                $parameters = $request->request->all();
+            }
+        }
         
         // validate the signature
         $is_valid = $this->validate($method, $url, $parameters, $api_token, $nonce, $signature, $api_secret);
@@ -63,7 +74,13 @@ class Validator
         if ($nonce < (time() - self::HMAC_TIMEOUT)) { throw new AuthorizationException("Invalid nonce parameter", "nonce was too old"); }
         if ($nonce > (time() + self::HMAC_TIMEOUT)) { throw new AuthorizationException("Invalid nonce parameter", "nonce was too far in the future"); }
 
-        $params_string = json_encode((array)$parameters);
+        $params_to_encode = (array)$parameters;
+        
+        if (empty($params_to_encode)) {
+            $params_string = '{}';
+        } else {
+            $params_string = json_encode($params_to_encode);
+        }
 
         $data =
             $method."\n"
@@ -71,12 +88,14 @@ class Validator
            .$params_string."\n"
            .$api_token."\n"
            .$nonce;
+        
 
         $expected_signature = base64_encode(hash_hmac('sha256', $data, $secret, true));
 
+
         $valid = ($signature === $expected_signature);
         if (!$valid) {
-            throw new AuthorizationException("Invalid Authorization Signature", "signature mismatch: data=".($data)."\nsignature=$signature");
+            throw new AuthorizationException("Invalid Authorization Signature", "signature mismatch: data=\n***\n".($data)."\n***\nactual signature=$signature");
         }
 
         return $valid;
