@@ -46,10 +46,15 @@ class Generator
         $url = $this->buildURL($request->getScheme(), $request->getHost(), $request->getPort()).$request->getPathInfo();
 
         // get parameters
-        if ($method == 'POST') {
-            $parameters = $request->request->all();
-        } else {
+        if ($method == 'GET') {
             $parameters = $request->query->all();
+        } else {
+            $is_json = strpos($request->header('CONTENT_TYPE'), '/json');
+            if ($is_json) {
+                $parameters = json_decode($request->getContent(), true);
+            } else {
+                $parameters = $request->request->all();
+            }
         }
 
         // get signature
@@ -77,7 +82,14 @@ class Generator
     {
         $nonce = time();
 
-        $params_string = json_encode((array)$parameters);
+        $params_to_encode = (array)$parameters;
+
+        if (empty($params_to_encode)) {
+            $params_string = '{}';
+        } else {
+            $params_string = json_encode($params_to_encode);
+        }
+
 
         $data =
             $method."\n"
@@ -87,7 +99,7 @@ class Generator
            .$nonce;
 
         $signature = base64_encode(hash_hmac('sha256', $data, $secret, true));
-    
+
         return ['nonce' => $nonce, 'signature' => $signature];
     }
 }
