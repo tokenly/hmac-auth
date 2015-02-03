@@ -23,7 +23,6 @@ class HmacAuthServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->package('tokenly/hmac-auth', 'hmac-auth', __DIR__.'/../../');
     }
 
 }
