@@ -26,7 +26,13 @@ class Generator
         $url = $this->buildURL($request->getScheme(), $request->getHost(), $request->getPort()).$request->getPath();
 
         // get parameters
-        $parameters = $request->getQuery()->toArray();
+        if ($method == 'GET') {
+            $parameters = $request->getQuery()->toArray();
+        } else {
+            // assume json
+            $json_string = $request->getBody();
+            $parameters = strlen($json_string) ? json_decode($json_string) : [];
+        }
 
         // get signature
         $signature_info = $this->createSignatureParameters($method, $url, $parameters, $api_token, $secret);
