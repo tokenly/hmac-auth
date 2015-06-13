@@ -58,7 +58,10 @@ class Validator
         } else {
             $is_json = strpos($request->header('CONTENT_TYPE'), '/json');
             if ($is_json) {
-                $parameters = json_decode($request->getContent(), true);
+                $parameters = $request->getContent();
+                if (!strlen($parameters)) {
+                    $parameters = '{}';
+                }
             } else {
                 $parameters = $request->request->all();
             }
@@ -74,13 +77,13 @@ class Validator
         if ($nonce < (time() - self::HMAC_TIMEOUT)) { throw new AuthorizationException("Invalid nonce parameter", "nonce was too old"); }
         if ($nonce > (time() + self::HMAC_TIMEOUT)) { throw new AuthorizationException("Invalid nonce parameter", "nonce was too far in the future"); }
 
-        $params_to_encode = (array)$parameters;
-        
-        if (empty($params_to_encode)) {
-            $params_string = '{}';
+        if (is_string($parameters)) {
+            $params_string = $parameters;
         } else {
-            $params_string = json_encode($params_to_encode);
+            $params_to_encode = (array)$parameters;
+            $params_string = json_encode($params_to_encode, JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT);
         }
+        
 
         $data =
             $method."\n"
