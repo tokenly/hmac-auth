@@ -93,7 +93,7 @@ class Generator
         if (empty($params_to_encode)) {
             $params_string = '{}';
         } else {
-            $params_string = json_encode($params_to_encode);
+            $params_string = json_encode($params_to_encode, JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT);
         }
 
 
