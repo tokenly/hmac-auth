@@ -52,30 +52,55 @@ class Validator
         $method = $request->getMethod();
         $url = $request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo();
 
+
+        // overcome bad parameter encodings
+        $parameter_sets_to_check = [];
+
         // get parameters
         if ($method == 'GET') {
             $parameters = $request->query->all();
+            $parameter_sets_to_check[] = $parameters;
         } else {
             $is_json = strpos($request->header('CONTENT_TYPE'), '/json');
             if ($is_json) {
                 $parameters = $request->getContent();
                 if (!strlen($parameters)) {
                     $parameters = '{}';
+                    $parameter_sets_to_check[] = $parameters;
+                } else {
+                    $parameter_sets_to_check[] = $parameters;
+
+                    // try re-encoding the string
+                    $re_encoded_parameters = json_encode(json_decode($parameters, true), JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT);
+                    if ($re_encoded_parameters !== $parameters) {
+                        $parameter_sets_to_check[] = $re_encoded_parameters;
+                    }
+
                 }
+
             } else {
                 $parameters = $request->request->all();
+                $parameter_sets_to_check[] = $parameters;
             }
         }
         
         // validate the signature
-        $is_valid = $this->validate($method, $url, $parameters, $api_token, $nonce, $signature, $api_secret);
-        return $is_valid;
+        foreach($parameter_sets_to_check as $parameter_set_to_check) {
+            $is_valid = $this->validate($method, $url, $parameter_set_to_check, $api_token, $nonce, $signature, $api_secret, $error_info);
+            if ($is_valid) { return $is_valid; }
+            if (!isset($first_error_info)) { $first_error_info = $error_info; }
+        }
+
+        // none were valid
+        if ($first_error_info) { throw new AuthorizationException($first_error_info[0], $first_error_info[1]); }
+        return false;
     }
 
-    public function validate($method, $url, $parameters, $api_token, $nonce, $signature, $secret)
+    public function validate($method, $url, $parameters, $api_token, $nonce, $signature, $secret, &$error_info)
     {
-        if ($nonce < (time() - self::HMAC_TIMEOUT)) { throw new AuthorizationException("Invalid nonce parameter", "nonce was too old"); }
-        if ($nonce > (time() + self::HMAC_TIMEOUT)) { throw new AuthorizationException("Invalid nonce parameter", "nonce was too far in the future"); }
+        $error_info = [];
+        if ($nonce < (time() - self::HMAC_TIMEOUT)) { $error_info = ["Invalid nonce parameter", "nonce was too old"]; return false; }
+        if ($nonce > (time() + self::HMAC_TIMEOUT)) { $error_info = ["Invalid nonce parameter", "nonce was too far in the future"]; return false; }
 
         if (is_string($parameters)) {
             $params_string = $parameters;
@@ -98,7 +123,8 @@ class Validator
 
         $valid = ($signature === $expected_signature);
         if (!$valid) {
-            throw new AuthorizationException("Invalid Authorization Signature", "signature mismatch: data=\n***\n".($data)."\n***\nactual signature=$signature");
+            $error_info = ["Invalid Authorization Signature", "signature mismatch: data=\n***\n".($data)."\n***\nactual signature=$signature"];
+            return false;
         }
 
         return $valid;
