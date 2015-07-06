@@ -85,8 +85,9 @@ class Validator
         }
         
         // validate the signature
+        $files = $request->files->all();
         foreach($parameter_sets_to_check as $parameter_set_to_check) {
-            $is_valid = $this->validate($method, $url, $parameter_set_to_check, $api_token, $nonce, $signature, $api_secret, $error_info);
+            $is_valid = $this->validate($method, $url, $parameter_set_to_check, $files, $api_token, $nonce, $signature, $api_secret, $error_info);
             if ($is_valid) { return $is_valid; }
             if (!isset($first_error_info)) { $first_error_info = $error_info; }
         }
@@ -96,20 +97,46 @@ class Validator
         return false;
     }
 
-    public function validate($method, $url, $parameters, $api_token, $nonce, $signature, $secret, &$error_info)
+    public function validate($method, $url, $parameters, $files, $api_token, $nonce, $signature, $secret, &$error_info)
     {
         $error_info = [];
         if ($nonce < (time() - self::HMAC_TIMEOUT)) { $error_info = ["Invalid nonce parameter", "nonce was too old"]; return false; }
         if ($nonce > (time() + self::HMAC_TIMEOUT)) { $error_info = ["Invalid nonce parameter", "nonce was too far in the future"]; return false; }
 
+        $actual_file_hash = null;
+        if ($files) {
+            if (count($files) > 1) { $error_info = ["Multiple files found", "Found ".count($files)." files.  Expected 1"]; return false; }
+            // only 1st file
+            foreach ($files as $file) {
+                $filepath = $file;
+                break;
+            }
+
+            $actual_file_hash = null;
+            if (file_exists($filepath)) {
+                $actual_file_hash = hash_file('sha256', $filepath);
+            }
+            if (!$actual_file_hash) { $error_info = ["Unabled to calculate file hash.", "file hash not found for file $filepath"]; return false; }
+
+            $expected_file_hash = isset($parameters['filehash']) ? $parameters['filehash'] : null;
+            if (!$expected_file_hash) { $error_info = ["Unabled to find file hash.", "file hash not found in parameters for uploaded file $filepath"]; return false; }
+
+            if ($expected_file_hash != $actual_file_hash) {
+                $error_info = ["File hash mismatch.", "file hash mismatch for uploaded file $filepath.  Actual hash was $actual_file_hash.  Expected $expected_file_hash"]; return false;
+            }
+
+
+        }
+
+
         if (is_string($parameters)) {
             $params_string = $parameters;
+            $decoded_parameters = null;
         } else {
-            $params_to_encode = (array)$parameters;
-            $params_string = json_encode($params_to_encode, JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT);
+            $decoded_parameters = (array)$parameters;
+            $params_string = json_encode($decoded_parameters, JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT);
         }
         
-
         $data =
             $method."\n"
            .$url."\n"
@@ -119,7 +146,6 @@ class Validator
         
 
         $expected_signature = base64_encode(hash_hmac('sha256', $data, $secret, true));
-
 
         $valid = ($signature === $expected_signature);
         if (!$valid) {
