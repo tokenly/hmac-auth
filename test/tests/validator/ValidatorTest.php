@@ -1,7 +1,6 @@
 <?php
 
 use Tokenly\HmacAuth\Validator;
-use \Exception;
 use \PHPUnit_Framework_Assert as PHPUnit;
 
 /*
@@ -18,7 +17,8 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase
         $expected_signature = $this->expectedSignature($nonce);
 
         // will throw an exception if it fails
-        $validator->validate('GET', 'http://somesite.com/sample/url', ['foo' => 'bar'], 'myapi123', $nonce, $expected_signature, 'mysecret456');
+        $validator->validate('GET', 'http://somesite.com/sample/url', ['foo' => 'bar'], null, 'myapi123', $nonce, $expected_signature, 'mysecret456', $error_info);
+        PHPUnit::assertEmpty($error_info);
     } 
 
     public function testValidateFromRequest() {

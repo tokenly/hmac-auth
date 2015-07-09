@@ -1,13 +1,13 @@
 {
     "name": "tokenly/hmac-auth",
-    "description": "A library",
+    "description": "A library for HMAC authentication",
     "type": "library",
     "license": "mit",
     "authors": [
         {
             "name": "Devon Weller",
-            "email": "dweller@devonweller.com",
-            "homepage": "http://devonweller.com"
+            "email": "devon@tokenly.com",
+            "homepage": "http://tokenly.com"
         }
     ],
     "require": {

@@ -1,7 +1,6 @@
 <?php
 
 use Tokenly\HmacAuth\Generator;
-use \Exception;
 use \PHPUnit_Framework_Assert as PHPUnit;
 
 /*
