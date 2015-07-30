@@ -36,6 +36,8 @@ class Validator
         $api_token = $request->headers->get('X-'.$this->auth_header_namespace.'-Auth-Api-Token');
         $signature = $request->headers->get('X-'.$this->auth_header_namespace.'-Auth-Signature');
 
+        if (!$nonce AND !$api_token AND !$signature) { throw new AuthorizationException("Missing authentication credentials"); }
+
         if (!$nonce) { throw new AuthorizationException("Missing nonce"); }
         if (!$api_token) { throw new AuthorizationException("Missing api_token"); }
         if (!$signature) { throw new AuthorizationException("Missing signature"); }
