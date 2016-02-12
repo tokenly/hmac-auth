@@ -23,16 +23,16 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
 
     public function testSignRequest() {
         $client = new \GuzzleHttp\Client();
-        $request = $client->createRequest('GET', 'http://somesite.com/sample/url?foo=bar');
+        $request = new \GuzzleHttp\Psr7\Request('GET', 'http://somesite.com/sample/url?foo=bar');
 
         $generator = new Generator();
-        $generator->addSignatureToGuzzleRequest($request, 'myapi123', 'mysecret456');
+        $request = $generator->addSignatureToGuzzle6Request($request, 'myapi123', 'mysecret456');
 
-        PHPUnit::assertEquals('myapi123', $request->getHeader('X-TOKENLY-AUTH-API-TOKEN'));
-        $nonce = $request->getHeader('X-TOKENLY-AUTH-NONCE');
+        PHPUnit::assertEquals(['myapi123'], $request->getHeader('X-TOKENLY-AUTH-API-TOKEN'));
+        $nonce = $request->getHeader('X-TOKENLY-AUTH-NONCE')[0];
         PHPUnit::assertGreaterThanOrEqual(time(), $nonce);
         $expected_signature = $this->expectedSignature($nonce);
-        PHPUnit::assertEquals($expected_signature, $request->getHeader('X-TOKENLY-AUTH-SIGNATURE'));
+        PHPUnit::assertEquals([$expected_signature], $request->getHeader('X-TOKENLY-AUTH-SIGNATURE'));
     } 
 
 

@@ -19,15 +19,18 @@ class Generator
         }
     }
 
-    public function addSignatureToGuzzleRequest(\GuzzleHttp\Message\Request $request, $api_token, $secret) {
+    // returns the modified request
+    public function addSignatureToGuzzle6Request(\GuzzleHttp\Psr7\Request $request, $api_token, $secret) {
         $method = $request->getMethod();
         
         // build URL without parameters
-        $url = $this->buildURL($request->getScheme(), $request->getHost(), $request->getPort()).$request->getPath();
+        $uri = $request->getUri();
+        $url = $this->buildURL($uri->getScheme(), $uri->getHost(), $uri->getPort()).$uri->getPath();
 
         // get parameters
         if ($method == 'GET') {
-            $parameters = $request->getQuery()->toArray();
+            parse_str($uri->getQuery(), $parameters);
+
         } else {
             // assume json
             $json_string = $request->getBody();
@@ -38,11 +41,11 @@ class Generator
         $signature_info = $this->createSignatureParameters($method, $url, $parameters, $api_token, $secret);
 
         // add http headers
-        $request->addHeader('X-'.$this->auth_header_namespace.'-AUTH-API-TOKEN', $api_token);
-        $request->addHeader('X-'.$this->auth_header_namespace.'-AUTH-NONCE', $signature_info['nonce']);
-        $request->addHeader('X-'.$this->auth_header_namespace.'-AUTH-SIGNATURE', $signature_info['signature']);
+        $request = $request->withHeader('X-'.$this->auth_header_namespace.'-AUTH-API-TOKEN', $api_token);
+        $request = $request->withHeader('X-'.$this->auth_header_namespace.'-AUTH-NONCE', $signature_info['nonce']);
+        $request = $request->withHeader('X-'.$this->auth_header_namespace.'-AUTH-SIGNATURE', $signature_info['signature']);
 
-        return;
+        return $request;
     }
 
     public function addSignatureToSymfonyRequest(\Symfony\Component\HttpFoundation\Request $request, $api_token, $secret) {
@@ -77,7 +80,7 @@ class Generator
     protected function buildURL($scheme, $host, $port) {
         $url = $scheme.'://'.$host;
 
-        if (('http' == $scheme AND $port == 80) OR ('https' == $scheme AND $port == 443)) {
+        if (('http' == $scheme AND ($port == 80 OR !$port)) OR ('https' == $scheme AND $port == 443)) {
             return $url;
         }
 
