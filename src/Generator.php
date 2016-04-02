@@ -110,7 +110,7 @@ class Generator
     protected function buildURLPrefix($scheme, $host, $port) {
         $url = $scheme.'://'.$host;
 
-        if (('http' == $scheme AND ($port == 80 OR !$port)) OR ('https' == $scheme AND $port == 443)) {
+        if (('http' == $scheme AND ($port == 80 OR !$port)) OR ('https' == $scheme AND ($port == 443 OR !$port))) {
             return $url;
         }
 
