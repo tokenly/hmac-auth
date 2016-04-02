@@ -82,7 +82,7 @@ class Generator
         if (!isset($url_parts['scheme']) OR !isset($url_parts['host']) OR !isset($url_parts['path'])) {
             throw new Exception("Invalid URL", 1);
         }
-        $port = isset($url_parts['port']) ? $url_parts['port'] : 80;
+        $port = isset($url_parts['port']) ? $url_parts['port'] : '';
         $url = $this->buildURLPrefix($url_parts['scheme'], $url_parts['host'], $port).$url_parts['path'];
 
         // get parameters
