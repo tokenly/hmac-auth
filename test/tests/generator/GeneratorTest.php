@@ -19,9 +19,7 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         PHPUnit::assertEquals($expected_signature, $params['signature']);
     } 
 
-
-
-    public function testSignRequest() {
+    public function testSignGuzzleRequest() {
         $client = new \GuzzleHttp\Client();
         $request = new \GuzzleHttp\Psr7\Request('GET', 'http://somesite.com/sample/url?foo=bar');
 
@@ -33,10 +31,45 @@ class GeneratorTest extends \PHPUnit_Framework_TestCase
         PHPUnit::assertGreaterThanOrEqual(time(), $nonce);
         $expected_signature = $this->expectedSignature($nonce);
         PHPUnit::assertEquals([$expected_signature], $request->getHeader('X-TOKENLY-AUTH-SIGNATURE'));
-    } 
+    }
+
+    public function testSignSymfonyRequest() {
+        $request = Symfony\Component\HttpFoundation\Request::create('http://somesite.com/sample/url', 'GET', ['foo' => 'bar']);
+
+        $generator = new Generator();
+        $request = $generator->addSignatureToSymfonyRequest($request, 'myapi123', 'mysecret456');
+
+        $nonce = $request->headers->get('X-TOKENLY-AUTH-NONCE');
+        PHPUnit::assertGreaterThanOrEqual(time(), $nonce);
+        PHPUnit::assertEquals('myapi123', $request->headers->get('X-TOKENLY-AUTH-API-TOKEN'));
+        $expected_signature = $this->expectedSignature($nonce);
+        PHPUnit::assertEquals($expected_signature, $request->headers->get('X-TOKENLY-AUTH-SIGNATURE'));
+    }
+
+    public function testGenerateHeaders() {
+        $generator = new Generator();
+        $headers = $generator->addSignatureToHeadersArray('GET', 'http://somesite.com/sample/url', ['foo' => 'bar'], 'myapi123', 'mysecret456');
+
+        $nonce = $headers['X-TOKENLY-AUTH-NONCE'];
+        PHPUnit::assertGreaterThanOrEqual(time(), $nonce);
+        PHPUnit::assertEquals('myapi123', $headers['X-TOKENLY-AUTH-API-TOKEN']);
+        $expected_signature = $this->expectedSignature($nonce);
+        PHPUnit::assertEquals($expected_signature, $headers['X-TOKENLY-AUTH-SIGNATURE']);
 
 
+        // with GET params
+        $headers = $generator->addSignatureToHeadersArray('GET', 'http://somesite.com/sample/url?foo=bar', null, 'myapi123', 'mysecret456');
 
+        $nonce = $headers['X-TOKENLY-AUTH-NONCE'];
+        PHPUnit::assertGreaterThanOrEqual(time(), $nonce);
+        PHPUnit::assertEquals('myapi123', $headers['X-TOKENLY-AUTH-API-TOKEN']);
+        $expected_signature = $this->expectedSignature($nonce);
+        PHPUnit::assertEquals($expected_signature, $headers['X-TOKENLY-AUTH-SIGNATURE']);
+    }
+
+
+    // ------------------------------------------------------------------------
+    
     protected function expectedSignature($nonce) {
         $str = "GET\nhttp://somesite.com/sample/url\n".json_encode((array)['foo' => 'bar'])."\nmyapi123\n".$nonce;
         return base64_encode(hash_hmac('sha256', $str, 'mysecret456', true));

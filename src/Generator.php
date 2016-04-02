@@ -25,7 +25,7 @@ class Generator
         
         // build URL without parameters
         $uri = $request->getUri();
-        $url = $this->buildURL($uri->getScheme(), $uri->getHost(), $uri->getPort()).$uri->getPath();
+        $url = $this->buildURLPrefix($uri->getScheme(), $uri->getHost(), $uri->getPort()).$uri->getPath();
 
         // get parameters
         if ($method == 'GET') {
@@ -52,7 +52,7 @@ class Generator
         $method = $request->getMethod();
         
         // build URL without parameters
-        $url = $this->buildURL($request->getScheme(), $request->getHost(), $request->getPort()).$request->getPathInfo();
+        $url = $this->buildURLPrefix($request->getScheme(), $request->getHost(), $request->getPort()).$request->getPathInfo();
 
         // get parameters
         if ($method == 'GET') {
@@ -74,10 +74,40 @@ class Generator
         $request->headers->set('X-'.$this->auth_header_namespace.'-AUTH-NONCE', $signature_info['nonce']);
         $request->headers->set('X-'.$this->auth_header_namespace.'-AUTH-SIGNATURE', $signature_info['signature']);
 
-        return;
+        return $request;
     }
 
-    protected function buildURL($scheme, $host, $port) {
+    public function addSignatureToHeadersArray($method, $url, $parameters, $api_token, $secret, $headers_array=[]) {
+        $url_parts = parse_url($url);
+        if (!isset($url_parts['scheme']) OR !isset($url_parts['host']) OR !isset($url_parts['path'])) {
+            throw new Exception("Invalid URL", 1);
+        }
+        $port = isset($url_parts['port']) ? $url_parts['port'] : 80;
+        $url = $this->buildURLPrefix($url_parts['scheme'], $url_parts['host'], $port).$url_parts['path'];
+
+        // get parameters
+        if ($method == 'GET') {
+            if (isset($url_parts['query']) AND strlen($url_parts['query'])) {
+                // replace the parameters with the query
+                parse_str($url_parts['query'], $parsed_query);
+                $parameters = $parsed_query;
+            }
+        }
+
+        // get signature
+        $signature_info = $this->createSignatureParameters($method, $url, $parameters, $api_token, $secret);
+
+        // add http headers
+        $headers_array['X-'.$this->auth_header_namespace.'-AUTH-API-TOKEN'] = $api_token;
+        $headers_array['X-'.$this->auth_header_namespace.'-AUTH-NONCE']     = $signature_info['nonce'];
+        $headers_array['X-'.$this->auth_header_namespace.'-AUTH-SIGNATURE'] = $signature_info['signature'];
+
+        return $headers_array;
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected function buildURLPrefix($scheme, $host, $port) {
         $url = $scheme.'://'.$host;
 
         if (('http' == $scheme AND ($port == 80 OR !$port)) OR ('https' == $scheme AND $port == 443)) {
