@@ -37,11 +37,28 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase
     } 
 
 
+    public function testValidateWithAlternateSignedURL() {
+        $validator = $this->newValidator();
+
+        $nonce = time();
+        $expected_signature = $this->expectedSignature($nonce, 'http://proxysite.com');
+
+        // $uri, $method = 'GET', $parameters = array(), $cookies = array(), $files = array(), $server = array()
+        $request = \Symfony\Component\HttpFoundation\Request::create('http://somesite.com/sample/url?foo=bar', 'GET', [], [], [], []);
+        $request->headers->set('X-Tokenly-Auth-Api-Token',  'myapi123');
+        $request->headers->set('X-Tokenly-Auth-Nonce',      $nonce);
+        $request->headers->set('X-Tokenly-Auth-Signature',  $expected_signature);
+        $request->headers->set('X-Tokenly-Auth-Signed-Url', 'http://proxysite.com');
+
+        $params = $validator->validateFromRequest($request);
+    } 
+
+
     ////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
 
-    protected function expectedSignature($nonce) {
-        $str = "GET\nhttp://somesite.com/sample/url\n".json_encode((array)['foo' => 'bar'])."\nmyapi123\n".$nonce;
+    protected function expectedSignature($nonce, $url='http://somesite.com') {
+        $str = "GET\n{$url}/sample/url\n".json_encode((array)['foo' => 'bar'])."\nmyapi123\n".$nonce;
         return base64_encode(hash_hmac('sha256', $str, 'mysecret456', true));
     }
 

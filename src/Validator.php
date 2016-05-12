@@ -35,6 +35,7 @@ class Validator
         $nonce = $request->headers->get('X-'.$this->auth_header_namespace.'-Auth-Nonce');
         $api_token = $request->headers->get('X-'.$this->auth_header_namespace.'-Auth-Api-Token');
         $signature = $request->headers->get('X-'.$this->auth_header_namespace.'-Auth-Signature');
+        $signed_url = $request->headers->get('X-'.$this->auth_header_namespace.'-Auth-Signed-Url');
 
         if (!$nonce AND !$api_token AND !$signature) { throw new AuthorizationException("Missing authentication credentials"); }
 
@@ -52,8 +53,13 @@ class Validator
 
         // build the method, url and parameters
         $method = $request->getMethod();
-        $url = $request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo();
 
+        // mangle URL if X-TOKENLY-AUTH-SIGNED-URL was provided
+        if ($signed_url) {
+            $url = $signed_url.$request->getBaseUrl().$request->getPathInfo();
+        } else {
+            $url = $request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo();
+        }
 
         // overcome bad parameter encodings
         $parameter_sets_to_check = [];
