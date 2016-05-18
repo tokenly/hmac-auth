@@ -48,7 +48,16 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase
         $request->headers->set('X-Tokenly-Auth-Api-Token',  'myapi123');
         $request->headers->set('X-Tokenly-Auth-Nonce',      $nonce);
         $request->headers->set('X-Tokenly-Auth-Signature',  $expected_signature);
-        $request->headers->set('X-Tokenly-Auth-Signed-Url', 'http://proxysite.com');
+        $request->headers->set('X-Tokenly-Auth-Signed-Url', 'http://proxysite.com/sample/url');
+
+        $validator->setSignedURLValidationFunction(function($actual_url, $signed_url) {
+            if ($signed_url != 'http://proxysite.com/sample/url') {
+                throw new Exception("Unexpected Signed URL of {$signed_url}", 1);
+            }
+
+            $is_valid = true;
+            return $is_valid;
+        });
 
         $params = $validator->validateFromRequest($request);
     } 
