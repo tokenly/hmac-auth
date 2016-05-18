@@ -14,8 +14,9 @@ class Validator
     const HMAC_TIMEOUT = 300; // 5 min
 
 
-    protected $auth_header_namespace      = 'Tokenly';
-    protected $api_secret_lookup_function = null;
+    protected $auth_header_namespace          = 'Tokenly';
+    protected $api_secret_lookup_function     = null;
+    protected $signed_url_validation_function = null;
 
 
     public function __construct($api_secret_lookup_function=null, $auth_header_namespace=null) {
@@ -28,6 +29,10 @@ class Validator
 
     public function setAPISecretLookupFunction($api_secret_lookup_function) {
         $this->api_secret_lookup_function = $api_secret_lookup_function;
+    }
+
+    public function setSignedURLValidationFunction($signed_url_validation_function) {
+        $this->signed_url_validation_function = $signed_url_validation_function;
     }
 
     public function validateFromRequest(\Symfony\Component\HttpFoundation\Request $request) {
@@ -56,7 +61,14 @@ class Validator
 
         // mangle URL if X-TOKENLY-AUTH-SIGNED-URL was provided
         if ($signed_url) {
-            $url = $signed_url.$request->getBaseUrl().$request->getPathInfo();
+            if ($this->signed_url_validation_function !== null AND is_callable($this->signed_url_validation_function)) {
+                $actual_url = $request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo();
+                $signed_url_is_valid = call_user_func($this->signed_url_validation_function, $actual_url, $signed_url);
+            } else {
+                $signed_url_is_valid = false;
+            }
+            if (!$signed_url_is_valid) { throw new AuthorizationException("Invalid Signed URL", "The URL signed for this request was not valid"); }
+            $url = $signed_url;
         } else {
             $url = $request->getSchemeAndHttpHost().$request->getBaseUrl().$request->getPathInfo();
         }
@@ -151,9 +163,11 @@ class Validator
            .$params_string."\n"
            .$api_token."\n"
            .$nonce;
+
         
 
         $expected_signature = base64_encode(hash_hmac('sha256', $data, $secret, true));
+
 
         $valid = ($signature === $expected_signature);
         if (!$valid) {
