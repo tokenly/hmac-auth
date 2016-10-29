@@ -80,8 +80,12 @@ class Validator
         if ($method == 'GET') {
             $parameters = $request->query->all();
             $parameter_sets_to_check[] = $parameters;
+        } else if ($method == 'DELETE' AND $request->query->count() > 0) {
+            // DELETE with query parameters
+            $parameters = $request->query->all();
+            $parameter_sets_to_check[] = $parameters;
         } else {
-            $is_json = strpos($request->header('CONTENT_TYPE'), '/json');
+            $is_json = !!strpos($request->header('CONTENT_TYPE'), '/json');
             if ($is_json) {
                 $parameters = $request->getContent();
                 if (!strlen($parameters)) {
