@@ -27,8 +27,10 @@
         "psr-4": {"Tokenly\\HmacAuth\\": "src"}
     },
     "extra": {
-        "branch-alias": {
-            "dev-master": "1.0.x-dev"
+        "laravel": {
+            "providers": [
+                "Tokenly\\HmacAuth\\ServiceProvider\\HmacAuthServiceProvider"
+            ]
         }
     }
 }

@@ -28,7 +28,7 @@ class Generator
         $url = $this->buildURLPrefix($uri->getScheme(), $uri->getHost(), $uri->getPort()).$uri->getPath();
 
         // get parameters
-        if ($method == 'GET') {
+        if ($method == 'GET' OR $method == 'DELETE' AND $uri->getQuery()) {
             parse_str($uri->getQuery(), $parameters);
 
         } else {
@@ -55,10 +55,10 @@ class Generator
         $url = $this->buildURLPrefix($request->getScheme(), $request->getHost(), $request->getPort()).$request->getPathInfo();
 
         // get parameters
-        if ($method == 'GET') {
+        if ($method == 'GET' OR ($method == 'DELETE' && $request->query->count() > 0)) {
             $parameters = $request->query->all();
         } else {
-            $is_json = strpos($request->header('CONTENT_TYPE'), '/json');
+            $is_json = strpos($request->headers->get('CONTENT_TYPE'), '/json');
             if ($is_json) {
                 $parameters = json_decode($request->getContent(), true);
             } else {
