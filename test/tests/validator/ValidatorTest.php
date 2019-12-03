@@ -1,12 +1,13 @@
 <?php
 
 use Tokenly\HmacAuth\Validator;
-use \PHPUnit_Framework_Assert as PHPUnit;
+use \PHPUnit\Framework\Assert as PHPUnit;
+use PHPUnit\Framework\TestCase;
 
 /*
 * 
 */
-class ValidatorTest extends \PHPUnit_Framework_TestCase
+class ValidatorTest extends TestCase
 {
 
 

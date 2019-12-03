@@ -1,12 +1,13 @@
 <?php
 
 use Tokenly\HmacAuth\Generator;
-use \PHPUnit_Framework_Assert as PHPUnit;
+use \PHPUnit\Framework\Assert as PHPUnit;
+use PHPUnit\Framework\TestCase;
 
 /*
 * 
 */
-class GeneratorTest extends \PHPUnit_Framework_TestCase
+class GeneratorTest extends TestCase
 {
 
 
