@@ -161,6 +161,11 @@ class Validator
             $params_string = json_encode($decoded_parameters, JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT);
         }
         
+        if($method == 'GET'){
+          $params_string = '{}';
+          $decoded_parameters = null;
+        }        
+        
         $data =
             $method."\n"
            .$url."\n"
